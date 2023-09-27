@@ -3,6 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
+tasks.jar {
+    archiveFileName.set("GujieTest.jar")
+}
+
 plugins {
     // Java support
     id("java")
