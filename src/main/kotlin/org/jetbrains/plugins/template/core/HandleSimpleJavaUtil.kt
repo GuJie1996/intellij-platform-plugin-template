@@ -16,10 +16,10 @@ import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageViewPresentation
 import java.util.concurrent.atomic.AtomicInteger
 
-class HandleJavaProjectUtil {
+class HandleSimpleJavaUtil {
 
     companion object {
-        fun hand(project : Project, fullPath : String, method : PsiMethod) : Boolean {
+        fun hand(project : Project, method : PsiMethod) : Boolean {
             // 查找是否有地方api调用了这个方法请求路径
             val usageList = mutableListOf<Usage>()
             val searchScope = GlobalSearchScope.projectScope(project)
@@ -34,8 +34,6 @@ class HandleJavaProjectUtil {
             // 考虑stringToFind正则表达式
             findModel.searchContext = FindModel.SearchContext.EXCEPT_COMMENTS
             findModel.fileFilter = "*.java"
-            //搜索内容
-            findModel.stringToFind = fullPath
             val findSettings = FindSettings.getInstance()
             //搜索范围
             findSettings.defaultScopeName = "Directory"
@@ -44,18 +42,8 @@ class HandleJavaProjectUtil {
             val filesToScanInitially: Set<VirtualFile?> = LinkedHashSet()
             val resultsCount = AtomicInteger()
             val state = ModalityState.current()
-            FindInProjectUtil.findUsages(findModel, project!!, processPresentation, filesToScanInitially) { info ->
-                val usage = UsageInfo2UsageAdapter.CONVERTER.`fun`(info)
-                usageList.add(usage)
-                val continueSearch = resultsCount.incrementAndGet() < ShowUsagesAction.getUsagesPageSize()
-                return@findUsages continueSearch
-            }
-            if (usageList.size > 0) {
-                return true
-            }
 
             // 查找是否有反射调用了这个方法名
-            resultsCount.set(0)
             val reflectName = "\"" + method.name + "\""
             findModel.stringToFind = reflectName
             FindInProjectUtil.findUsages(findModel, project!!, processPresentation, filesToScanInitially) { info ->

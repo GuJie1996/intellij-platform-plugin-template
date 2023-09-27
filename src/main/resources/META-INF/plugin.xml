@@ -19,6 +19,7 @@
     <actions>
         <group id="gujie_test" text="顾杰测试" description="Just a Test">
             <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="delete_java_action" class="org.jetbrains.plugins.template.actions.DeleteJavaAction" text="删除未使用的方法" description="Just a test"/>
             <action id="gujie_action" class="org.jetbrains.plugins.template.actions.GujieActionDemo" text="删除未调用的controller" description="Just a test"/>
         </group>
     </actions>

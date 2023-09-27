@@ -24,7 +24,6 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
     private lateinit var jsProjectPathStr : String
     private lateinit var selectedPsiFile : PsiFile
     init {
-        println("初始化了")
         title = "精简Controller"
         this.anActionEvent = anActionEvent
         this.project = anActionEvent.getData(PlatformDataKeys.PROJECT)!!
