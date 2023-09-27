@@ -7,7 +7,6 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -17,8 +16,10 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Computable
-import com.intellij.psi.*
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiJavaFile
+import com.intellij.psi.PsiMethod
 import org.jetbrains.plugins.template.core.HandleJSProjectUtil
 import org.jetbrains.plugins.template.core.HandleJavaProjectUtil
 import java.awt.GridLayout
@@ -105,30 +106,20 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                 indicator.fraction = 0.0
 
                 val psiJavaFile = selectedPsiFile as PsiJavaFile
-                val elements = ApplicationManager.getApplication()
-                    .runReadAction(Computable<Array<PsiElement?>?> { psiJavaFile.children })
-                if (elements == null || elements.isEmpty()) {
-                    return
-                }
+                val elements = psiJavaFile.children
                 for (element in elements) {
                     if (element is PsiClass) {
                         val psiClass = element as PsiClass
                         var path = ""
-                        val annotations = ApplicationManager.getApplication()
-                            .runReadAction(Computable<Array<PsiAnnotation?>?> { psiClass.annotations })
-                        if (annotations != null) {
-                            for (annotation in annotations) {
-                                // 遍历类中的注解
-                                if (annotation != null) {
-                                    if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
-                                        || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
-                                        || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
-                                        val valueAttribute = annotation.findAttributeValue("value")
-                                        if (valueAttribute != null) {
-                                            val text = valueAttribute.text
-                                            path = text
-                                        }
-                                    }
+                        for (annotation in psiClass.annotations) {
+                            // 遍历类中的注解
+                            if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
+                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
+                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
+                                val valueAttribute = annotation.findAttributeValue("value")
+                                if (valueAttribute != null) {
+                                    val text = valueAttribute.text
+                                    path = text
                                 }
                             }
                         }
@@ -139,21 +130,15 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                             indicator.fraction = i++ / total.toDouble()
                             // 遍历类中的方法
                             var methodPath = ""
-                            val annotations = ApplicationManager.getApplication()
-                                .runReadAction(Computable<Array<PsiAnnotation?>?> { method.annotations })
-                            if (annotations != null && annotations.isNotEmpty()) {
-                                for (annotation in annotations) {
-                                    // 遍历类中的注解
-                                    if (annotation != null) {
-                                        if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
-                                            || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
-                                            || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
-                                            val valueAttribute = annotation.findAttributeValue("value")
-                                            if (valueAttribute != null) {
-                                                val text = valueAttribute.text
-                                                methodPath = text
-                                            }
-                                        }
+                            for (annotation in psiClass.annotations) {
+                                // 遍历类中的注解
+                                if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
+                                    || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
+                                    || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
+                                    val valueAttribute = annotation.findAttributeValue("value")
+                                    if (valueAttribute != null) {
+                                        val text = valueAttribute.text
+                                        methodPath = text
                                     }
                                 }
                             }
