@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class HandleJSProjectUtil {
 
     companion object {
-        fun hand(filePath : String, project : Project) : Boolean {
+        fun hand(filePath : String, fullPath : String, project : Project) : Boolean {
             //搜索结果
             val usageList = mutableListOf<Usage>()
             val findModel = FindManager.getInstance(project).findInProjectModel
@@ -33,7 +33,7 @@ class HandleJSProjectUtil {
             findModel.searchContext = FindModel.SearchContext.EXCEPT_COMMENTS
             findModel.fileFilter = "*.vue,*.js"
             //搜索内容
-            findModel.stringToFind = "/queryJiagesPage"
+            findModel.stringToFind = fullPath
             val findSettings = FindSettings.getInstance()
             //搜索范围
             findSettings.defaultScopeName = "Directory"

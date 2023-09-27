@@ -125,7 +125,7 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                             methodPath = "/$methodPath"
                         }
                         val fullPath = path + methodPath
-                        if (!HandleJavaProjectUtil.hand(project, fullPath, method) && !HandleJSProjectUtil.hand(jsProjectPathStr, project)) {
+                        if (!HandleJavaProjectUtil.hand(project, fullPath, method) && !HandleJSProjectUtil.hand(jsProjectPathStr, fullPath, project)) {
                             deletedList.add(method.name)
                             deletedMethodList.add(method)
                         }
