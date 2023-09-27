@@ -11,6 +11,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
+import com.intellij.psi.PsiMethod
 import org.jetbrains.plugins.template.core.HandleSimpleJavaUtil
 import java.awt.GridLayout
 import javax.swing.*
@@ -21,7 +22,7 @@ class DeleteJavaDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
     private val project : Project
     private lateinit var selectedPsiFile : PsiFile
     init {
-        title = "精简Controller"
+        title = "精简普通Java类"
         this.anActionEvent = anActionEvent
         this.project = anActionEvent.getData(PlatformDataKeys.PROJECT)!!
         init()
@@ -63,6 +64,7 @@ class DeleteJavaDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
             return
         }
         val deletedList = mutableListOf<String>()
+        val deletedMethodList = mutableListOf<PsiMethod>()
         if (selectedPsiFile is PsiJavaFile) {
             val psiJavaFile = selectedPsiFile as PsiJavaFile
             val elements = psiJavaFile.children
@@ -74,10 +76,15 @@ class DeleteJavaDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                         // 遍历类中的方法
                         if (!HandleSimpleJavaUtil.hand(project, method)) {
                             deletedList.add(method.name)
-                            WriteCommandAction.runWriteCommandAction(project) {
-                                method.delete()
-                            }
+                            deletedMethodList.add(method)
                         }
+                    }
+                }
+            }
+            if (deletedList.size > 0) {
+                WriteCommandAction.runWriteCommandAction(project) {
+                    for (needDeleteItem in deletedMethodList) {
+                        needDeleteItem.delete()
                     }
                 }
             }

@@ -8,9 +8,12 @@ import com.intellij.find.impl.FindInProjectUtil
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
+import com.intellij.psi.util.parents
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageViewPresentation
@@ -60,11 +63,23 @@ class HandleJavaProjectUtil {
             findModel.stringToFind = reflectName
             FindInProjectUtil.findUsages(findModel, project!!, processPresentation, filesToScanInitially) { info ->
                 val usage = UsageInfo2UsageAdapter.CONVERTER.`fun`(info)
-                usageList.add(usage)
+                val usageInfo = usage as UsageInfo2UsageAdapter
+                val psiElement = usageInfo.element
+                val targetElement = psiElement?.containingFile?.findElementAt(usage.navigationOffset)
+                for (parent in targetElement?.parents!!) {
+                    if (parent is PsiAnnotation) {
+                        // 注解里可能是controller，提前退出，不算反射调用
+                        break
+                    }
+                    if (parent is PsiJavaFile) {
+                        usageList.add(usage)
+                        break
+                    }
+                }
                 val continueSearch = resultsCount.incrementAndGet() < ShowUsagesAction.getUsagesPageSize()
                 return@findUsages continueSearch
             }
-            if (usageList.size > 1) {
+            if (usageList.size > 0) {
                 return true
             }
 

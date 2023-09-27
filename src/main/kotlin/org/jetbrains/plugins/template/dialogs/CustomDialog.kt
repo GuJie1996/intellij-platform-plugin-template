@@ -13,6 +13,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
+import com.intellij.psi.PsiMethod
 import org.jetbrains.plugins.template.core.HandleJSProjectUtil
 import org.jetbrains.plugins.template.core.HandleJavaProjectUtil
 import java.awt.GridLayout
@@ -84,6 +85,7 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
             return
         }
         val deletedList = mutableListOf<String>()
+        val deletedMethodList = mutableListOf<PsiMethod>()
         if (selectedPsiFile is PsiJavaFile) {
             val psiJavaFile = selectedPsiFile as PsiJavaFile
             val elements = psiJavaFile.children
@@ -125,8 +127,13 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                         val fullPath = path + methodPath
                         if (!HandleJavaProjectUtil.hand(project, fullPath, method) && !HandleJSProjectUtil.hand(jsProjectPathStr, project)) {
                             deletedList.add(method.name)
-                            WriteCommandAction.runWriteCommandAction(project) {
-                                method.delete()
+                            deletedMethodList.add(method)
+                        }
+                    }
+                    if (deletedList.size > 0) {
+                        WriteCommandAction.runWriteCommandAction(project) {
+                            for (needDeleteItem in deletedMethodList) {
+                                needDeleteItem.delete()
                             }
                         }
                     }
