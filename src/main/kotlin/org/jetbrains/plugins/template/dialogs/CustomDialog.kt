@@ -1,18 +1,12 @@
 package org.jetbrains.plugins.template.dialogs
 
 import com.intellij.ide.util.TreeFileChooserFactory
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
@@ -24,7 +18,6 @@ import org.jetbrains.plugins.template.core.HandleJSProjectUtil
 import org.jetbrains.plugins.template.core.HandleJavaProjectUtil
 import java.awt.GridLayout
 import javax.swing.*
-
 
 class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
     private val anActionEvent: AnActionEvent
@@ -91,26 +84,31 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
             Messages.showWarningDialog("请选择前端路径", "警告")
             return
         }
-        if (selectedPsiFile !is PsiJavaFile) {
-            Messages.showWarningDialog("请选择Java类", "警告")
-            return
-        }
         val deletedList = mutableListOf<String>()
         val deletedMethodList = mutableListOf<PsiMethod>()
-        // 前端搜索太慢，加个进度条
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "精简controller", false) {
-            override fun run(indicator: ProgressIndicator) {
-                // 设置进度条的总量
-                indicator.isIndeterminate = false
-                indicator.text = "正在处理..."
-                indicator.fraction = 0.0
-
-                val psiJavaFile = selectedPsiFile as PsiJavaFile
-                val elements = psiJavaFile.children
-                for (element in elements) {
-                    if (element is PsiClass) {
-                        val psiClass = element as PsiClass
-                        var path = ""
+        if (selectedPsiFile is PsiJavaFile) {
+            val psiJavaFile = selectedPsiFile as PsiJavaFile
+            val elements = psiJavaFile.children
+            for (element in elements) {
+                if (element is PsiClass) {
+                    val psiClass = element as PsiClass
+                    var path = ""
+                    for (annotation in psiClass.annotations) {
+                        // 遍历类中的注解
+                        if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
+                            || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
+                            || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
+                            val valueAttribute = annotation.findAttributeValue("value")
+                            if (valueAttribute != null) {
+                                val text = valueAttribute.text
+                                path = text
+                            }
+                        }
+                    }
+                    val methods = psiClass.methods
+                    for (method in methods) {
+                        // 遍历类中的方法
+                        var methodPath = ""
                         for (annotation in psiClass.annotations) {
                             // 遍历类中的注解
                             if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
@@ -119,59 +117,33 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                                 val valueAttribute = annotation.findAttributeValue("value")
                                 if (valueAttribute != null) {
                                     val text = valueAttribute.text
-                                    path = text
+                                    methodPath = text
                                 }
                             }
                         }
-                        val methods = psiClass.methods
-                        var i = 0
-                        val total = methods.size
-                        for (method in methods) {
-                            indicator.fraction = i++ / total.toDouble()
-                            // 遍历类中的方法
-                            var methodPath = ""
-                            for (annotation in psiClass.annotations) {
-                                // 遍历类中的注解
-                                if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
-                                    || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
-                                    || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
-                                    val valueAttribute = annotation.findAttributeValue("value")
-                                    if (valueAttribute != null) {
-                                        val text = valueAttribute.text
-                                        methodPath = text
-                                    }
-                                }
-                            }
-                            if (!methodPath.startsWith("/")) {
-                                methodPath = "/$methodPath"
-                            }
-                            val fullPath = path + methodPath
-                            if (!HandleJavaProjectUtil.hand(project, fullPath, method) && !HandleJSProjectUtil.hand(jsProjectPathStr, fullPath, project)) {
-                                deletedList.add(method.name)
-                                deletedMethodList.add(method)
-                            }
+                        if (!methodPath.startsWith("/")) {
+                            methodPath = "/$methodPath"
                         }
-                        if (deletedList.size > 0) {
-                            WriteCommandAction.runWriteCommandAction(project) {
-                                for (needDeleteItem in deletedMethodList) {
-                                    needDeleteItem.delete()
-                                }
+                        val fullPath = path + methodPath
+                        if (!HandleJavaProjectUtil.hand(project, fullPath, method) && !HandleJSProjectUtil.hand(jsProjectPathStr, project)) {
+                            deletedList.add(method.name)
+                            deletedMethodList.add(method)
+                        }
+                    }
+                    if (deletedList.size > 0) {
+                        WriteCommandAction.runWriteCommandAction(project) {
+                            for (needDeleteItem in deletedMethodList) {
+                                needDeleteItem.delete()
                             }
                         }
                     }
                 }
-                // 发送通知给用户
-                // 发送通知给用户
-                val notification = Notification(
-                    "MyNotificationGroup",
-                    "精简controller完成",
-                    "The task is completed.",
-                    NotificationType.INFORMATION
-                )
-                Notifications.Bus.notify(notification)
-//                Messages.showWarningDialog("删除了${deletedList.size}个方法，分别是${deletedList.joinToString(",")}", "警告")
             }
-        })
+        } else {
+            Messages.showWarningDialog("请选择Java类", "警告")
+            return
+        }
+        Messages.showWarningDialog("删除了${deletedList.size}个方法，分别是${deletedList.joinToString(",")}", "警告")
 //            selectedPsiFile.accept(object : PsiElementVisitor() {
 //                override fun visitElement(element: PsiElement) {
 //                    if (element is PsiJavaFile) {

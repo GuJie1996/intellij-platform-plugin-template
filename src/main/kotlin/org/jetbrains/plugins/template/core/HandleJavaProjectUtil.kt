@@ -46,7 +46,7 @@ class HandleJavaProjectUtil {
             val processPresentation = FindInProjectUtil.setupProcessPresentation(project!!, myUsageViewPresentation!!)
             val filesToScanInitially: Set<VirtualFile?> = LinkedHashSet()
             val resultsCount = AtomicInteger()
-//            val state = ModalityState.current()
+            val state = ModalityState.current()
             FindInProjectUtil.findUsages(findModel, project!!, processPresentation, filesToScanInitially) { info ->
                 val usage = UsageInfo2UsageAdapter.CONVERTER.`fun`(info)
                 usageList.add(usage)

@@ -23,8 +23,4 @@
             <action id="gujie_action" class="org.jetbrains.plugins.template.actions.GujieActionDemo" text="删除未调用的controller" description="Just a test"/>
         </group>
     </actions>
-    <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup id="MyNotificationGroup" displayType="BALLOON" />
-    </extensions>
-
 </idea-plugin>
