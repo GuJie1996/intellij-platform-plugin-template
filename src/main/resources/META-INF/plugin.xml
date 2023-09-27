@@ -5,6 +5,7 @@
     <vendor>JetBrains</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="org.jetbrains.plugins.template.services.MyApplicationService"/>
