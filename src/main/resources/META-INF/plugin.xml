@@ -15,4 +15,10 @@
         <listener class="org.jetbrains.plugins.template.listeners.MyProjectManagerListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
+    <actions>
+        <group id="gujie_test" text="顾杰测试" description="Just a Test">
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="gujie_action" class="org.jetbrains.plugins.template.actions.GujieActionDemo" text="删除未调用的controller" description="Just a test"/>
+        </group>
+    </actions>
 </idea-plugin>
