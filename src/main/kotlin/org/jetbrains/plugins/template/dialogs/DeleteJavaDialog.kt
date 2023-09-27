@@ -12,6 +12,10 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.searches.OverridingMethodsSearch
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.Query
 import org.jetbrains.plugins.template.core.HandleSimpleJavaUtil
 import java.awt.GridLayout
 import javax.swing.*
@@ -65,6 +69,7 @@ class DeleteJavaDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
         }
         val deletedList = mutableListOf<String>()
         val deletedMethodList = mutableListOf<PsiMethod>()
+        val searchScope = GlobalSearchScope.projectScope(project)
         if (selectedPsiFile is PsiJavaFile) {
             val psiJavaFile = selectedPsiFile as PsiJavaFile
             val elements = psiJavaFile.children
@@ -77,6 +82,11 @@ class DeleteJavaDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                         if (!HandleSimpleJavaUtil.hand(project, method)) {
                             deletedList.add(method.name)
                             deletedMethodList.add(method)
+                            if (psiClass.isInterface) {
+                                // 级联删除子方法
+                                val childrentMethods =  OverridingMethodsSearch.search(method, searchScope, true)
+                                deletedMethodList.addAll(childrentMethods.findAll())
+                            }
                         }
                     }
                 }
