@@ -27,6 +27,8 @@ class HandleJavaProjectUtil {
             val usageList = mutableListOf<Usage>()
             val searchScope = GlobalSearchScope.projectScope(project)
             val findModel = FindManager.getInstance(project).findInProjectModel
+            // 重置一下，不然被JS的目录影响了
+            findModel.directoryName = null
             findModel.isGlobal = false
             findModel.isReplaceState = false
             findModel.isProjectScope = false

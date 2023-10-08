@@ -27,6 +27,7 @@ class HandleSimpleJavaUtil {
             val usageList = mutableListOf<Usage>()
             val searchScope = GlobalSearchScope.projectScope(project)
             val findModel = FindManager.getInstance(project).findInProjectModel
+            findModel.directoryName = null
             findModel.isGlobal = false
             findModel.isReplaceState = false
             findModel.isProjectScope = false
