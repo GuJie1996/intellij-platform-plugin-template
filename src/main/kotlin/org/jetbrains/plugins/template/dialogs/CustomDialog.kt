@@ -113,7 +113,10 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                             // 遍历类中的注解
                             if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
                                 || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
-                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping") {
+                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.PostMapping"
+                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.PutMapping"
+                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.DeleteMapping"
+                                || annotation.qualifiedName == "org.springframework.web.bind.annotation.PatchMapping") {
                                 val valueAttribute = annotation.findAttributeValue("value")
                                 if (valueAttribute != null) {
                                     val text = valueAttribute.text
