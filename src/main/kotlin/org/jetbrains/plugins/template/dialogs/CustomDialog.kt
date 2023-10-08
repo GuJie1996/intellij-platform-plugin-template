@@ -101,7 +101,7 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                             val valueAttribute = annotation.findAttributeValue("value")
                             if (valueAttribute != null) {
                                 val text = valueAttribute.text
-                                path = text
+                                path = text.removeSurrounding("\"")
                             }
                         }
                     }
@@ -109,7 +109,7 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                     for (method in methods) {
                         // 遍历类中的方法
                         var methodPath = ""
-                        for (annotation in psiClass.annotations) {
+                        for (annotation in method.annotations) {
                             // 遍历类中的注解
                             if (annotation.qualifiedName == "org.springframework.web.bind.annotation.RequestMapping"
                                 || annotation.qualifiedName == "org.springframework.web.bind.annotation.GetMapping"
@@ -117,7 +117,7 @@ class CustomDialog(anActionEvent: AnActionEvent) : DialogWrapper(true) {
                                 val valueAttribute = annotation.findAttributeValue("value")
                                 if (valueAttribute != null) {
                                     val text = valueAttribute.text
-                                    methodPath = text
+                                    methodPath = text.removeSurrounding("\"")
                                 }
                             }
                         }
